@@ -10,12 +10,12 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "prisma": "^4.14.1",
     "tsx": "^3.12.7",
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@prisma/client": "^4.14.1",
-    "fastify": "^4.17.0"
+    "fastify": "^4.17.0",
+    "knex": "^2.4.2",
+    "pg": "^8.11.0"
   }
 }
