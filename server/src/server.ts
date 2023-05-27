@@ -1,9 +1,17 @@
 import fastify from 'fastify'
+import { knex } from './database'
 
 const app = fastify()
 
-app.get('/', async () => {
-  return { hello: 'world' }
+app.get('/users', async () => {
+  try {
+    const users = await knex('User').select('*')
+    return { users }
+  } catch (error) {
+    console.log(error)
+    return { error }
+  }
+
 })
 
 app
