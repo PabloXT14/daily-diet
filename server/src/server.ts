@@ -5,7 +5,7 @@ const app = fastify()
 
 app.get('/users', async () => {
   try {
-    const users = await knex('User').select('*')
+    const users = await knex('user').select('*')
     return { users }
   } catch (error) {
     console.log(error)
@@ -13,6 +13,7 @@ app.get('/users', async () => {
   }
 
 })
+
 
 app
   .listen({
