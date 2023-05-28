@@ -1,9 +1,15 @@
 import { Knex, knex as setupKnex } from 'knex'
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 export const config: Knex.Config = {
-  client: "pg",
-  connection: 'postgresql://postgres:root@localhost:5433/daily-diet-db',
-  searchPath: ['knex', 'public'],
+  client: process.env.DATABASE_CLIENT,
+  connection:
+    process.env.DATABASE_CLIENT === 'pg'
+      ? process.env.DATABASE_URL
+      : {
+          filename: process.env.DATABASE_URL!,
+        },
   migrations: {
     extension: 'ts',
     directory: './db/migrations',
