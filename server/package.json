@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "knex": "node --no-warnings --loader tsx ./node_modules/knex/bin/cli.js",
-    "lint": "eslint ."
+    "lint": "eslint . --ext .ts --fix"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +17,8 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@fastify/cookie": "^8.3.0",
+    "@fastify/formbody": "^7.4.0",
     "@types/node": "^20.2.5",
     "dotenv": "^16.0.3",
     "fastify": "^4.17.0",
