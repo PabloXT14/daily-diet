@@ -29,9 +29,13 @@ export async function sessionsRoutes(app: FastifyInstance) {
 
     const sessionId = randomUUID()
 
-    await knex('user').update({
-      session_id: sessionId,
-    })
+    await knex('user')
+      .update({
+        session_id: sessionId,
+      })
+      .where({
+        id: user.id,
+      })
 
     reply.cookie('sessionId', sessionId, {
       path: '/',
