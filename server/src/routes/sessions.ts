@@ -7,12 +7,12 @@ import { AppError } from '../utils/AppError'
 
 export async function sessionsRoutes(app: FastifyInstance) {
   app.post('/', async (request, reply) => {
-    const bodyParams = z.object({
+    const bodySchema = z.object({
       email: z.string().email(),
       password: z.string().min(6),
     })
 
-    const { email, password } = bodyParams.parse(request.body)
+    const { email, password } = bodySchema.parse(request.body)
 
     const user = await knex('user').first().where({
       email,

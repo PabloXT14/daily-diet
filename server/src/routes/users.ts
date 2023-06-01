@@ -20,14 +20,14 @@ export async function usersRoutes(app: FastifyInstance) {
   )
 
   app.post('/', async (request, reply) => {
-    const bodyParams = z.object({
+    const bodySchema = z.object({
       name: z.string(),
       email: z.string().email(),
       password: z.string().min(6),
       avatar_url: z.string().url(),
     })
 
-    const { name, email, password, avatar_url } = bodyParams.parse(request.body)
+    const { name, email, password, avatar_url } = bodySchema.parse(request.body)
 
     const userAlreadyExists = await knex('user').first().where({ email })
 
@@ -60,14 +60,14 @@ export async function usersRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const { sessionId } = request.cookies
 
-      const bodyParams = z.object({
+      const bodySchema = z.object({
         name: z.string().optional(),
         email: z.string().email().optional(),
         password: z.string().min(6).optional(),
         avatar_url: z.string().url().optional(),
       })
 
-      const { name, email, password, avatar_url } = bodyParams.parse(
+      const { name, email, password, avatar_url } = bodySchema.parse(
         request.body,
       )
 
