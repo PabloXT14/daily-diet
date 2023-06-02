@@ -7,14 +7,16 @@ import { env } from './env'
 import { usersRoutes } from './routes/users'
 import { sessionsRoutes } from './routes/sessions'
 import { AppError } from './utils/AppError'
+import { mealsRoutes } from './routes/meals'
 
 const app = fastify()
 
 app.register(cookie)
 app.register(formbody)
 
-app.register(usersRoutes, { prefix: '/users' })
 app.register(sessionsRoutes, { prefix: '/sessions' })
+app.register(usersRoutes, { prefix: '/users' })
+app.register(mealsRoutes, { prefix: '/meals' })
 
 app.setErrorHandler((error, request, reply) => {
   if (env.NODE_ENV !== 'production') {

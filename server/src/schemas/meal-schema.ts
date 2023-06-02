@@ -8,7 +8,6 @@ export const MealSchema = z.object({
   meal_date: z.string().refine(
     (value) => {
       const parsedDate = parseISO(value)
-      console.log(parsedDate)
       return isValid(parsedDate)
     },
     {
