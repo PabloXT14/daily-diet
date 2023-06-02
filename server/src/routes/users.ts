@@ -1,10 +1,10 @@
 import { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
-import { z } from 'zod'
 
 import { knex } from '../database'
 import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 import { AppError } from '../utils/AppError'
+import { UserSchema } from '../schemas/user-schema'
 
 export async function usersRoutes(app: FastifyInstance) {
   app.get(
@@ -20,11 +20,11 @@ export async function usersRoutes(app: FastifyInstance) {
   )
 
   app.post('/', async (request, reply) => {
-    const bodySchema = z.object({
-      name: z.string(),
-      email: z.string().email(),
-      password: z.string().min(6),
-      avatar_url: z.string().url(),
+    const bodySchema = UserSchema.pick({
+      name: true,
+      email: true,
+      password: true,
+      avatar_url: true,
     })
 
     const { name, email, password, avatar_url } = bodySchema.parse(request.body)
@@ -60,11 +60,11 @@ export async function usersRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const { sessionId } = request.cookies
 
-      const bodySchema = z.object({
-        name: z.string().optional(),
-        email: z.string().email().optional(),
-        password: z.string().min(6).optional(),
-        avatar_url: z.string().url().optional(),
+      const bodySchema = UserSchema.pick({
+        name: true,
+        email: true,
+        password: true,
+        avatar_url: true,
       })
 
       const { name, email, password, avatar_url } = bodySchema.parse(
