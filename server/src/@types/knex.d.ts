@@ -1,11 +1,11 @@
 // eslint-disable-next-line no-unused-vars
 import { Knex } from 'knex'
-import { UserTableType } from './user-table-type'
-import { MealTableType } from './meal-table-type'
+import { MealType } from '../schemas/meal-schema'
+import { UserType } from '../schemas/user-schema'
 
 declare module 'knex/types/tables' {
   export interface Tables {
-    user: UserTableType
-    meal: MealTableType
+    user: UserType
+    meal: MealType
   }
 }
