@@ -2,8 +2,8 @@ import fastify from 'fastify'
 import formbody from '@fastify/formbody'
 import cookie from '@fastify/cookie'
 import { ZodError } from 'zod'
-import { env } from './env'
 
+import { env } from './env'
 import { usersRoutes } from './routes/users'
 import { sessionsRoutes } from './routes/sessions'
 import { AppError } from './utils/AppError'
@@ -33,6 +33,12 @@ app.setErrorHandler((error, request, reply) => {
   }
 
   if (error instanceof AppError) {
+    return reply.status(error.statusCode).send({
+      message: error.message,
+    })
+  }
+
+  if ('statusCode' in error && error.statusCode) {
     return reply.status(error.statusCode).send({
       message: error.message,
     })

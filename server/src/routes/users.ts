@@ -66,6 +66,16 @@ export async function usersRoutes(app: FastifyInstance) {
         password: true,
         avatar_url: true,
       })
+        .partial()
+        .refine(
+          (obj) => {
+            const isEmpty = Object.keys(obj).length <= 0
+            return !isEmpty
+          },
+          {
+            message: 'The body must not be empty',
+          },
+        )
 
       const { name, email, password, avatar_url } = bodySchema.parse(
         request.body,
