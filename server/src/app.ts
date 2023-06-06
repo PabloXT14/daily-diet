@@ -38,8 +38,8 @@ app.setErrorHandler((error, request, reply) => {
     })
   }
 
-  if ('statusCode' in error && error.statusCode) {
-    return reply.status(error.statusCode).send({
+  if (error instanceof Error) {
+    return reply.status(error.statusCode ?? 500).send({
       message: error.message,
     })
   }

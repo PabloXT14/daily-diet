@@ -109,11 +109,13 @@ export async function mealsRoutes(app: FastifyInstance) {
       const { name, description, meal_date, meal_time, is_diet } =
         bodySchema.parse(request.body)
 
-      const mealExists = await knex('meal').first().where({ id })
+      const user = await knex('user').first().where({ session_id: sessionId })
+
+      const mealExists = await knex('meal')
+        .first()
+        .where({ id, user_id: user?.id })
 
       if (!mealExists) throw new AppError('Meal not found', 404)
-
-      const user = await knex('user').first().where({ session_id: sessionId })
 
       await knex('meal')
         .update({
