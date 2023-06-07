@@ -1,137 +1,200 @@
 import { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
-import { format } from 'date-fns'
 
 import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 import { knex } from '../database'
 import { MealSchema, MealType } from '../schemas/meal-schema'
 import { AppError } from '../utils/AppError'
+import { formatMealDate, formatMealTime } from '../utils/format'
 
 export async function mealsRoutes(app: FastifyInstance) {
-  app.get(
-    '/',
-    { preHandler: [checkSessionIdExists] },
-    async (request, reply) => {
-      const { sessionId } = request.cookies
+  app.addHook('preHandler', checkSessionIdExists)
 
-      const user = await knex('user').first().where({ session_id: sessionId })
+  app.get('/', async (request, reply) => {
+    const { sessionId } = request.cookies
 
-      const meals = await knex('meal')
-        .select('*')
-        .where({ user_id: user?.id })
-        .orderBy('created_at', 'desc')
-        .then((data: MealType[]) => {
-          const formattedMeals = data.map((meal) => {
-            const [hours, minutes, seconds] = meal.meal_time.split(':')
+    const user = await knex('user').first().where({ session_id: sessionId })
 
-            const time = new Date()
-            time.setHours(Number(hours))
-            time.setMinutes(Number(minutes))
-            time.setSeconds(Number(seconds))
-
-            return {
-              ...meal,
-              meal_date: format(new Date(meal.meal_date), 'yyyy-MM-dd'),
-              meal_time: format(time, 'HH:mm'),
-            }
-          })
-          return formattedMeals
+    const meals = await knex('meal')
+      .select('*')
+      .where({ user_id: user?.id })
+      .orderBy('created_at', 'desc')
+      .then((data: MealType[]) => {
+        const formattedMeals = data.map((meal) => {
+          return {
+            ...meal,
+            meal_date: formatMealDate(meal.meal_date),
+            meal_time: formatMealTime(meal.meal_time),
+          }
         })
-
-      return reply.status(200).send({ meals })
-    },
-  )
-
-  app.post(
-    '/',
-    { preHandler: [checkSessionIdExists] },
-    async (request, reply) => {
-      const { sessionId } = request.cookies
-
-      const bodySchema = MealSchema.pick({
-        name: true,
-        description: true,
-        meal_date: true,
-        meal_time: true,
-        is_diet: true,
+        return formattedMeals
       })
 
-      const { name, description, meal_date, meal_time, is_diet } =
-        bodySchema.parse(request.body)
+    return reply.status(200).send({ meals })
+  })
 
-      const user = await knex('user').first().where({ session_id: sessionId })
+  app.get('/:id', async (request, reply) => {
+    const { sessionId } = request.cookies
 
-      // console.log(meal_date)
+    const paramsSchema = MealSchema.pick({
+      id: true,
+    })
 
-      await knex('meal').insert({
-        id: randomUUID(),
+    const { id } = paramsSchema.parse(request.params)
+
+    const user = await knex('user').first().where({ session_id: sessionId })
+
+    const meal = await knex('meal')
+      .first()
+      .where({ id, user_id: user?.id })
+      .then((_meal) => {
+        if (!_meal) throw new AppError('Meal not found', 404)
+
+        const formattedMeal = {
+          ..._meal,
+          meal_date: formatMealDate(_meal.meal_date),
+          meal_time: formatMealTime(_meal.meal_time),
+        }
+
+        return formattedMeal
+      })
+
+    if (!meal) throw new AppError('Meal not found', 404)
+
+    return reply.status(200).send({ meal })
+  })
+
+  app.post('/', async (request, reply) => {
+    const { sessionId } = request.cookies
+
+    const bodySchema = MealSchema.pick({
+      name: true,
+      description: true,
+      meal_date: true,
+      meal_time: true,
+      is_diet: true,
+    })
+
+    const { name, description, meal_date, meal_time, is_diet } =
+      bodySchema.parse(request.body)
+
+    const user = await knex('user').first().where({ session_id: sessionId })
+
+    await knex('meal').insert({
+      id: randomUUID(),
+      name,
+      description,
+      meal_date,
+      meal_time,
+      is_diet,
+      user_id: user?.id,
+    })
+
+    return reply.status(201).send()
+  })
+
+  app.put('/:id', async (request, reply) => {
+    const { sessionId } = request.cookies
+
+    const paramsSchema = MealSchema.pick({
+      id: true,
+    })
+
+    const bodySchema = MealSchema.pick({
+      name: true,
+      description: true,
+      meal_date: true,
+      meal_time: true,
+      is_diet: true,
+    })
+      .partial()
+      .refine(
+        (obj) => {
+          const isEmpty = Object.keys(obj).length <= 0
+          return !isEmpty
+        },
+        {
+          message: 'You need to inform at least one valid field to update',
+        },
+      )
+
+    const { id } = paramsSchema.parse(request.params)
+    const { name, description, meal_date, meal_time, is_diet } =
+      bodySchema.parse(request.body)
+
+    const user = await knex('user').first().where({ session_id: sessionId })
+
+    const mealExists = await knex('meal')
+      .first()
+      .where({ id, user_id: user?.id })
+
+    if (!mealExists) throw new AppError('Meal not found', 404)
+
+    await knex('meal')
+      .update({
         name,
         description,
         meal_date,
         meal_time,
         is_diet,
+        updated_at: knex.fn.now(),
+      })
+      .where({
+        id,
         user_id: user?.id,
       })
 
-      return reply.status(201).send()
-    },
-  )
+    return reply.status(204).send()
+  })
 
-  app.put(
-    '/:id',
-    { preHandler: [checkSessionIdExists] },
-    async (request, reply) => {
-      const { sessionId } = request.cookies
+  app.delete('/:id', async (request, reply) => {
+    const { sessionId } = request.cookies
 
-      const paramsSchema = MealSchema.pick({
-        id: true,
-      })
+    const paramsSchema = MealSchema.pick({
+      id: true,
+    })
 
-      const bodySchema = MealSchema.pick({
-        name: true,
-        description: true,
-        meal_date: true,
-        meal_time: true,
-        is_diet: true,
-      })
-        .partial()
-        .refine(
-          (obj) => {
-            const isEmpty = Object.keys(obj).length <= 0
-            return !isEmpty
-          },
-          {
-            message: 'The body must not be empty',
-          },
-        )
+    const { id } = paramsSchema.parse(request.params)
 
-      const { id } = paramsSchema.parse(request.params)
-      const { name, description, meal_date, meal_time, is_diet } =
-        bodySchema.parse(request.body)
+    const user = await knex('user').first().where({ session_id: sessionId })
 
-      const user = await knex('user').first().where({ session_id: sessionId })
+    const mealExists = await knex('meal')
+      .first()
+      .where({ id, user_id: user?.id })
 
-      const mealExists = await knex('meal')
-        .first()
-        .where({ id, user_id: user?.id })
+    if (!mealExists) throw new AppError('Meal not found', 404)
 
-      if (!mealExists) throw new AppError('Meal not found', 404)
+    await knex('meal').delete().where({ id, user_id: user?.id })
 
-      await knex('meal')
-        .update({
-          name,
-          description,
-          meal_date,
-          meal_time,
-          is_diet,
-          updated_at: knex.fn.now(),
-        })
-        .where({
-          id,
-          user_id: user?.id,
-        })
+    return reply.status(204).send()
+  })
 
-      return reply.status(204).send()
-    },
-  )
+  app.get('/summary', async (request, reply) => {
+    const { sessionId } = request.cookies
+
+    const user = await knex('user').first().where({ session_id: sessionId })
+
+    const totalMeals = await knex('meal')
+      .count()
+      .where({ user_id: user?.id })
+      .then((data) => Number(data[0].count))
+
+    const mealsInDiet = await knex('meal')
+      .count()
+      .where({ is_diet: true, user_id: user?.id })
+      .then((data) => Number(data[0].count))
+
+    const mealsOutOfDiet = await knex('meal')
+      .count()
+      .where({ is_diet: false, user_id: user?.id })
+      .then((data) => Number(data[0].count))
+
+    const summary = {
+      total_meals: totalMeals,
+      meals_in_diet: mealsInDiet,
+      meals_out_of_diet: mealsOutOfDiet,
+    }
+
+    return reply.status(200).send({ summary })
+  })
 }

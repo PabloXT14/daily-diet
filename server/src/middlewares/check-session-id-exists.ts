@@ -7,7 +7,7 @@ export async function checkSessionIdExists(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const sessionId = request.cookies.sessionId
+  const { sessionId } = request.cookies
 
   if (!sessionId) {
     throw new AppError('Unauthorized', 401)
