@@ -189,24 +189,33 @@ export async function mealsRoutes(app: FastifyInstance) {
       .where({ is_diet: false, user_id: user?.id })
       .then((data) => Number(data[0].count))
 
-    const bestDietSequenceNumber = await knex('meal')
-      .select('meal_date', knex.raw('COUNT(*) as meals_on_diet'))
-      .where({ is_diet: true, user_id: user?.id })
-      .groupBy('meal_date')
-      .orderBy('meals_on_diet', 'desc')
-      .first()
-      .then((data: any) => {
-        if (data) {
-          return Number(data.meals_on_diet)
+    const bestDietSequence = await knex
+      .raw(
+        `
+      SELECT COUNT(*) AS sequence_count
+      FROM (
+        SELECT ROW_NUMBER() OVER (ORDER BY meal_date ASC) AS row_number, meal_date
+        FROM meal
+        WHERE is_diet = true AND user_id = '${user?.id}'
+      ) AS sequence
+      GROUP BY meal_date - row_number
+      ORDER BY COUNT(*) DESC
+      LIMIT 1
+    `,
+      )
+      .then((data) => {
+        if (data.length > 0) {
+          return Number(data[0].sequence_count)
+        } else {
+          return 0
         }
-        return 0
       })
 
     const summary = {
       total_meals: totalMeals,
       meals_in_diet: mealsInDiet,
       meals_out_of_diet: mealsOutOfDiet,
-      best_diet_sequence_number: bestDietSequenceNumber,
+      best_diet_sequence: bestDietSequence,
     }
 
     return reply.status(200).send({ summary })
