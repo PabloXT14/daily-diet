@@ -1,26 +1,18 @@
 import { z } from 'zod'
-import { isValid, parseISO, parse } from 'date-fns'
+import { isValid, parseISO } from 'date-fns'
 
 export const MealSchema = z.object({
   id: z.string().uuid(),
   name: z.string().nonempty(),
   description: z.string().nonempty(),
-  meal_date: z.string().refine(
-    (value) => {
-      const parsedDate = parseISO(value)
+  meal_datetime: z.string().refine(
+    (datetime) => {
+      const parsedDate = parseISO(datetime)
       return isValid(parsedDate)
     },
     {
-      message: 'Invalid date format (yyyy-mm-dd)',
-    },
-  ),
-  meal_time: z.string().refine(
-    (value) => {
-      const parsedTime = parse(value, 'HH:mm', new Date())
-      return isValid(parsedTime)
-    },
-    {
-      message: 'Invalid time format (HH:mm)',
+      message:
+        'Invalid date, must be on ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)',
     },
   ),
   is_diet: z.boolean(),

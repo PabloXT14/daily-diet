@@ -3,9 +3,9 @@ import { randomUUID } from 'node:crypto'
 
 import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 import { knex } from '../database'
-import { MealSchema, MealType } from '../schemas/meal-schema'
+import { MealSchema } from '../schemas/meal-schema'
 import { AppError } from '../utils/AppError'
-import { formatMealDate, formatMealTime } from '../utils/format'
+import { formatDatetimeToUTC } from '../utils/format'
 
 export async function mealsRoutes(app: FastifyInstance) {
   app.addHook('preHandler', checkSessionIdExists)
@@ -18,17 +18,7 @@ export async function mealsRoutes(app: FastifyInstance) {
     const meals = await knex('meal')
       .select('*')
       .where({ user_id: user?.id })
-      .orderBy('created_at', 'desc')
-      .then((data: MealType[]) => {
-        const formattedMeals = data.map((meal) => {
-          return {
-            ...meal,
-            meal_date: formatMealDate(meal.meal_date),
-            meal_time: formatMealTime(meal.meal_time),
-          }
-        })
-        return formattedMeals
-      })
+      .orderBy('meal_datetime', 'desc')
 
     return reply.status(200).send({ meals })
   })
@@ -44,20 +34,7 @@ export async function mealsRoutes(app: FastifyInstance) {
 
     const user = await knex('user').first().where({ session_id: sessionId })
 
-    const meal = await knex('meal')
-      .first()
-      .where({ id, user_id: user?.id })
-      .then((_meal) => {
-        if (!_meal) throw new AppError('Meal not found', 404)
-
-        const formattedMeal = {
-          ..._meal,
-          meal_date: formatMealDate(_meal.meal_date),
-          meal_time: formatMealTime(_meal.meal_time),
-        }
-
-        return formattedMeal
-      })
+    const meal = await knex('meal').first().where({ id, user_id: user?.id })
 
     if (!meal) throw new AppError('Meal not found', 404)
 
@@ -70,13 +47,13 @@ export async function mealsRoutes(app: FastifyInstance) {
     const bodySchema = MealSchema.pick({
       name: true,
       description: true,
-      meal_date: true,
-      meal_time: true,
+      meal_datetime: true,
       is_diet: true,
     })
 
-    const { name, description, meal_date, meal_time, is_diet } =
-      bodySchema.parse(request.body)
+    const { name, description, meal_datetime, is_diet } = bodySchema.parse(
+      request.body,
+    )
 
     const user = await knex('user').first().where({ session_id: sessionId })
 
@@ -84,8 +61,7 @@ export async function mealsRoutes(app: FastifyInstance) {
       id: randomUUID(),
       name,
       description,
-      meal_date,
-      meal_time,
+      meal_datetime: formatDatetimeToUTC(meal_datetime),
       is_diet,
       user_id: user?.id,
     })
@@ -103,14 +79,13 @@ export async function mealsRoutes(app: FastifyInstance) {
     const bodySchema = MealSchema.pick({
       name: true,
       description: true,
-      meal_date: true,
-      meal_time: true,
+      meal_datetime: true,
       is_diet: true,
     })
       .partial()
       .refine(
-        (obj) => {
-          const isEmpty = Object.keys(obj).length <= 0
+        (body) => {
+          const isEmpty = Object.keys(body).length <= 0
           return !isEmpty
         },
         {
@@ -119,8 +94,9 @@ export async function mealsRoutes(app: FastifyInstance) {
       )
 
     const { id } = paramsSchema.parse(request.params)
-    const { name, description, meal_date, meal_time, is_diet } =
-      bodySchema.parse(request.body)
+    const { name, description, meal_datetime, is_diet } = bodySchema.parse(
+      request.body,
+    )
 
     const user = await knex('user').first().where({ session_id: sessionId })
 
@@ -134,8 +110,9 @@ export async function mealsRoutes(app: FastifyInstance) {
       .update({
         name,
         description,
-        meal_date,
-        meal_time,
+        meal_datetime: meal_datetime
+          ? formatDatetimeToUTC(meal_datetime)
+          : meal_datetime,
         is_diet,
         updated_at: knex.fn.now(),
       })
@@ -189,27 +166,7 @@ export async function mealsRoutes(app: FastifyInstance) {
       .where({ is_diet: false, user_id: user?.id })
       .then((data) => Number(data[0].count))
 
-    const bestDietSequence = await knex
-      .raw(
-        `
-      SELECT COUNT(*) AS sequence_count
-      FROM (
-        SELECT ROW_NUMBER() OVER (ORDER BY meal_date ASC) AS row_number, meal_date
-        FROM meal
-        WHERE is_diet = true AND user_id = '${user?.id}'
-      ) AS sequence
-      GROUP BY meal_date - row_number
-      ORDER BY COUNT(*) DESC
-      LIMIT 1
-    `,
-      )
-      .then((data) => {
-        if (data.length > 0) {
-          return Number(data[0].sequence_count)
-        } else {
-          return 0
-        }
-      })
+    const bestDietSequence = 2
 
     const summary = {
       total_meals: totalMeals,

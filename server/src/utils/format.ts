@@ -1,16 +1,16 @@
-import { format } from 'date-fns'
+// import { format } from 'date-fns'
+import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz'
 
-export function formatMealDate(meal_date: string) {
-  return format(new Date(meal_date), 'yyyy-MM-dd')
+export function formatDatetimeToUTC(datetime: string | Date) {
+  const date = new Date(datetime)
+
+  const utcDate = utcToZonedTime(date, 'UTC')
+
+  return utcDate.toISOString()
 }
 
-export function formatMealTime(meal_time: string) {
-  const [hours, minutes, seconds] = meal_time.split(':')
+export function formateUTCToDatetime(datetime: Date) {
+  const date = zonedTimeToUtc(datetime, 'UTC')
 
-  const time = new Date()
-  time.setHours(Number(hours))
-  time.setMinutes(Number(minutes))
-  time.setSeconds(Number(seconds))
-
-  return format(new Date(time), 'HH:mm')
+  return date
 }
