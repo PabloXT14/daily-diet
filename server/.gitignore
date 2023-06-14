@@ -1,7 +1,12 @@
+# Dependencies
 node_modules
 
-# ENVIROMENT VARIABLES
+# Environment
 .env
+.env.test
 
-# DATABASE
+# Database
 db/*.db
+
+# Build
+build
