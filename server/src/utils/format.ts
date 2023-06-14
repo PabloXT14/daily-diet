@@ -1,4 +1,3 @@
-// import { format } from 'date-fns'
 import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz'
 
 export function formatDatetimeToUTC(datetime: string | Date) {
