@@ -103,9 +103,79 @@ describe('Users routes', () => {
     it('should not be able to get an non-existing user', async () => {
       const getUserResponse = await request(app.server).get('/users')
 
-      expect(getUserResponse.body).toEqual({
-        message: 'Unauthorized',
+      expect(getUserResponse.body).toEqual(
+        expect.objectContaining({
+          message: 'Unauthorized',
+        }),
+      )
+    })
+  })
+
+  describe('PUT /users', () => {
+    it('should be able to update an existing user', async () => {
+      const createUserResponse = await request(app.server)
+        .post('/users')
+        .send({
+          name: 'John Doe',
+          email: 'johndoe@email.com',
+          password: '123456',
+          avatar_url: 'https://github.com/johndoe.png',
+        })
+        .expect(201)
+
+      const cookies = createUserResponse.get('Set-Cookie')
+
+      await request(app.server)
+        .put('/users')
+        .set('Cookie', cookies)
+        .send({
+          name: 'John Doe updated',
+          email: 'johndoeupdated@email.com',
+          password: '654321',
+          avatar_url: 'https://github.com/johndoeupdated.png',
+        })
+        .expect(204)
+    })
+
+    it('should not be able to update an non-existing user', async () => {
+      const updateUserResponse = await request(app.server).put('/users').send({
+        name: 'John Doe updated',
+        email: 'johndoeupdated@email.com',
+        password: '654321',
+        avatar_url: 'https://github.com/johndoeupdated.png',
       })
+
+      expect(updateUserResponse.body).toEqual(
+        expect.objectContaining({
+          message: 'Unauthorized',
+        }),
+      )
+    })
+
+    it('should not be able to update an existing user without at least one field', async () => {
+      const createUserResponse = await request(app.server)
+        .post('/users')
+        .send({
+          name: 'John Doe',
+          email: 'johndoe@email.com',
+          password: '123456',
+          avatar_url: 'https://github.com/johndoe.png',
+        })
+        .expect(201)
+
+      const cookies = createUserResponse.get('Set-Cookie')
+
+      const updateUserResponse = await request(app.server)
+        .put('/users')
+        .set('Cookie', cookies)
+        .send({})
+        .expect(400)
+
+      expect(updateUserResponse.body).toEqual(
+        expect.objectContaining({
+          message: 'Validation error',
+        }),
+      )
     })
   })
 })
