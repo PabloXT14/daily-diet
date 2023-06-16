@@ -70,4 +70,42 @@ describe('Users routes', () => {
       expect(sessionId).toBeDefined()
     })
   })
+
+  describe('GET /users', () => {
+    it('should be able to get an existing user', async () => {
+      const createUserResponse = await request(app.server)
+        .post('/users')
+        .send({
+          name: 'John Doe',
+          email: 'johndoe@email.com',
+          password: '123456',
+          avatar_url: 'https://github.com/johndoe.png',
+        })
+        .expect(201)
+
+      const cookies = createUserResponse.get('Set-Cookie')
+
+      const getUserResponse = await request(app.server)
+        .get('/users')
+        .set('Cookie', cookies)
+        .expect(200)
+
+      expect(getUserResponse.body.user).toEqual(
+        expect.objectContaining({
+          name: 'John Doe',
+          email: 'johndoe@email.com',
+          password: '123456',
+          avatar_url: 'https://github.com/johndoe.png',
+        }),
+      )
+    })
+
+    it('should not be able to get an non-existing user', async () => {
+      const getUserResponse = await request(app.server).get('/users')
+
+      expect(getUserResponse.body).toEqual({
+        message: 'Unauthorized',
+      })
+    })
+  })
 })
