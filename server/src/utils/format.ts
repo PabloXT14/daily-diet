@@ -8,7 +8,7 @@ export function formatDatetimeToUTC(datetime: string | Date) {
   return utcDate.toISOString()
 }
 
-export function formateUTCToDatetime(datetime: Date) {
+export function formatUTCToDatetime(datetime: Date) {
   const date = zonedTimeToUtc(datetime, 'UTC')
 
   return date
