@@ -54,6 +54,18 @@ describe('Users routes', () => {
       await request(app.server).post('/users').send({}).expect(400)
     })
 
+    it('should not be able to create a user with invalid data', async () => {
+      await request(app.server)
+        .post('/users')
+        .send({
+          name: 123,
+          email: 123,
+          password: 123,
+          avatar_url: 123,
+        })
+        .expect(400)
+    })
+
     it('should return sessionId in response cookies', async () => {
       const createUserResponse = await request(app.server)
         .post('/users')
@@ -142,7 +154,7 @@ describe('Users routes', () => {
         .expect(204)
     })
 
-    it('should not be able to update an non-existing user', async () => {
+    it('should not be able to update a user from an invalid cookie', async () => {
       const invalidCookies = 'invalid'
 
       const updateUserResponse = await request(app.server)
@@ -180,6 +192,37 @@ describe('Users routes', () => {
         .put('/users')
         .set('Cookie', cookies)
         .send({})
+        .expect(400)
+
+      expect(updateUserResponse.body).toEqual(
+        expect.objectContaining({
+          message: 'Validation error',
+        }),
+      )
+    })
+
+    it('should not be able to update an existing user with invalid data', async () => {
+      const createUserResponse = await request(app.server)
+        .post('/users')
+        .send({
+          name: 'John Doe',
+          email: 'johndoe@email.com',
+          password: '123456',
+          avatar_url: 'https://github.com/johndoe.png',
+        })
+        .expect(201)
+
+      const cookies = createUserResponse.get('Set-Cookie')
+
+      const updateUserResponse = await request(app.server)
+        .put('/users')
+        .set('Cookie', cookies)
+        .send({
+          name: 123,
+          email: 123,
+          password: 123,
+          avatar_url: 123,
+        })
         .expect(400)
 
       expect(updateUserResponse.body).toEqual(

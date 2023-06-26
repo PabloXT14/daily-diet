@@ -152,17 +152,17 @@ export async function mealsRoutes(app: FastifyInstance) {
     const user = await knex('user').first().where({ session_id: sessionId })
 
     const totalMeals = await knex('meal')
-      .count()
+      .count('*', { as: 'count' })
       .where({ user_id: user?.id })
       .then((data) => Number(data[0].count))
 
     const mealsInDiet = await knex('meal')
-      .count()
+      .count('*', { as: 'count' })
       .where({ is_diet: true, user_id: user?.id })
       .then((data) => Number(data[0].count))
 
     const mealsOutOfDiet = await knex('meal')
-      .count()
+      .count('*', { as: 'count' })
       .where({ is_diet: false, user_id: user?.id })
       .then((data) => Number(data[0].count))
 
