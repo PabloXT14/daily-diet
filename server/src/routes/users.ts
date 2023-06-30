@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
+import bcrypt from 'bcrypt'
 
 import { knex } from '../database'
 import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
@@ -37,16 +38,22 @@ export async function usersRoutes(app: FastifyInstance) {
 
     const sessionId = randomUUID()
 
-    reply.cookie('sessionId', sessionId, {
+    reply.setCookie('sessionId', sessionId, {
       path: '/',
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1), // 1 day
     })
+
+    const saltRounds = 10
+    const hashedPassword = await bcrypt.hash(password, saltRounds)
 
     await knex('user').insert({
       id: randomUUID(),
       name,
       email,
-      password,
+      password: hashedPassword,
       avatar_url,
       session_id: sessionId,
     })
@@ -81,11 +88,19 @@ export async function usersRoutes(app: FastifyInstance) {
         request.body,
       )
 
+      const saltRounds = 10
+      let hashedPassword = ''
+      if (password) {
+        hashedPassword = await bcrypt.hash(password, saltRounds)
+      }
+
+      const user = await knex('user').first().where({ session_id: sessionId })
+
       await knex('user')
         .update({
           name,
           email,
-          password,
+          password: password ? hashedPassword : user?.password,
           avatar_url,
           updated_at: knex.fn.now(),
         })

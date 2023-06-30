@@ -1,12 +1,13 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { randomUUID } from 'node:crypto'
+import bcrypt from 'bcrypt'
 
 import { knex } from '../database'
 import { AppError } from '../utils/AppError'
 
 export async function sessionsRoutes(app: FastifyInstance) {
-  app.post('/', async (request, reply) => {
+  app.post('/login', async (request, reply) => {
     const bodySchema = z.object({
       email: z.string().email(),
       password: z.string().min(6),
@@ -14,16 +15,16 @@ export async function sessionsRoutes(app: FastifyInstance) {
 
     const { email, password } = bodySchema.parse(request.body)
 
-    const user = await knex('user').first().where({
-      email,
-      password,
-    })
+    const user = await knex('user').first().where({ email })
 
     if (!user) {
       throw new AppError('Incorrect email or password', 401)
     }
 
-    if (user.password !== password) {
+    const hashedPassword = user.password
+    const passwordMatched = await bcrypt.compare(password, hashedPassword)
+
+    if (!passwordMatched) {
       throw new AppError('Incorrect email or password', 401)
     }
 
@@ -37,11 +38,26 @@ export async function sessionsRoutes(app: FastifyInstance) {
         id: user.id,
       })
 
-    reply.cookie('sessionId', sessionId, {
+    reply.setCookie('sessionId', sessionId, {
       path: '/',
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1), // 1 day
     })
 
     return reply.status(201).send({ session_id: sessionId })
+  })
+
+  app.post('/logout', async (request, reply) => {
+    reply
+      .clearCookie('sessionId', {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+      })
+      .status(200)
+      .send({ message: 'Logged out successfully' })
   })
 }
