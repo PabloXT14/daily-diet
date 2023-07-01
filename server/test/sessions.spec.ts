@@ -18,9 +18,9 @@ describe('Sessions routes', () => {
     execSync('npm run knex migrate:latest')
   })
 
-  describe.only('POST /sessions', () => {
+  describe('POST /sessions/login', () => {
     it('should be able to create a session', async () => {
-      const createUserResponse = await request(app.server)
+      await request(app.server)
         .post('/users')
         .send({
           name: 'John Doe',
@@ -30,11 +30,8 @@ describe('Sessions routes', () => {
         })
         .expect(201)
 
-      const cookies = createUserResponse.get('Set-Cookie')
-
       const createSessionResponse = await request(app.server)
-        .post('/sessions')
-        .set('Cookie', cookies)
+        .post('/sessions/login')
         .send({
           email: 'johndoe@email.com',
           password: '123456',
@@ -46,7 +43,7 @@ describe('Sessions routes', () => {
 
     it('should not be able to create a session with an invalid email and/or password', async () => {
       const createSessionResponse = await request(app.server)
-        .post('/sessions')
+        .post('/sessions/login')
         .set('Cookie', 'invalid')
         .send({
           email: '',
@@ -63,7 +60,7 @@ describe('Sessions routes', () => {
 
     it('should not be able to create a session with a non-existent email and/or password', async () => {
       const createSessionResponse = await request(app.server)
-        .post('/sessions')
+        .post('/sessions/login')
         .set('Cookie', 'invalid')
         .send({
           email: 'johndoe@email.com',
@@ -74,6 +71,42 @@ describe('Sessions routes', () => {
       expect(createSessionResponse.body).toEqual(
         expect.objectContaining({
           message: 'Incorrect email or password',
+        }),
+      )
+    })
+  })
+
+  describe('POST /sessions/logout', () => {
+    it('should be able to clear a session', async () => {
+      const createUserResponse = await request(app.server)
+        .post('/users')
+        .send({
+          name: 'John Doe',
+          email: 'johndoe@email.com',
+          password: '123456',
+          avatar_url: 'https://github.com/johndoe.png',
+        })
+        .expect(201)
+
+      const cookies = createUserResponse.get('Set-Cookie')
+
+      await request(app.server)
+        .post('/sessions/logout')
+        .set('Cookie', cookies)
+        .expect(204)
+    })
+
+    it('should not be able to clear a session from an invalid cookie', async () => {
+      const invalidCookies = 'invalid'
+
+      const deleteSessionResponse = await request(app.server)
+        .post('/sessions/logout')
+        .set('Cookie', invalidCookies)
+        .expect(401)
+
+      expect(deleteSessionResponse.body).toEqual(
+        expect.objectContaining({
+          message: 'Unauthorized',
         }),
       )
     })

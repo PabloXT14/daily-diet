@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt'
 
 import { knex } from '../database'
 import { AppError } from '../utils/AppError'
+import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 
 export async function sessionsRoutes(app: FastifyInstance) {
   app.post('/login', async (request, reply) => {
@@ -49,15 +50,19 @@ export async function sessionsRoutes(app: FastifyInstance) {
     return reply.status(201).send({ session_id: sessionId })
   })
 
-  app.post('/logout', async (request, reply) => {
-    reply
-      .clearCookie('sessionId', {
-        path: '/',
-        httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
-      })
-      .status(200)
-      .send({ message: 'Logged out successfully' })
-  })
+  app.post(
+    '/logout',
+    { preHandler: [checkSessionIdExists] },
+    async (request, reply) => {
+      return reply
+        .clearCookie('sessionId', {
+          path: '/',
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+        })
+        .status(204)
+        .send()
+    },
+  )
 }
