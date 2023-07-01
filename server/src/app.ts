@@ -1,6 +1,7 @@
 import fastify from 'fastify'
 import formbody from '@fastify/formbody'
 import cookie from '@fastify/cookie'
+import rateLimit, { RateLimitOptions } from '@fastify/rate-limit'
 import { ZodError } from 'zod'
 
 import { env } from './env'
@@ -11,6 +12,12 @@ import { mealsRoutes } from './routes/meals'
 
 const app = fastify()
 
+const rateLimitOptions: RateLimitOptions = {
+  max: 100,
+  timeWindow: '1 minute',
+}
+
+app.register(rateLimit, rateLimitOptions)
 app.register(cookie)
 app.register(formbody)
 
