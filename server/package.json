@@ -2,7 +2,10 @@
   "name": "daily-diet",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.ts",
+  "engines": {
+    "node": ">=18 <19"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "pm2-runtime start ecosystem.config.js --env production",
