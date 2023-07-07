@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'app',
+      name: 'daily-diet-app',
       script: './build/server.js',
       env: {
         NODE_ENV: 'development',
