@@ -1,6 +1,7 @@
 import fastify from 'fastify'
 import formbody from '@fastify/formbody'
 import cookie from '@fastify/cookie'
+import cors from '@fastify/cors'
 import rateLimit, { RateLimitOptions } from '@fastify/rate-limit'
 import { ZodError } from 'zod'
 
@@ -17,6 +18,9 @@ const rateLimitOptions: RateLimitOptions = {
   timeWindow: '1 minute',
 }
 
+app.register(cors, {
+  origin: env.ENABLED_CORS?.split(';') ?? ['*'],
+})
 app.register(rateLimit, rateLimitOptions)
 app.register(cookie)
 app.register(formbody)
