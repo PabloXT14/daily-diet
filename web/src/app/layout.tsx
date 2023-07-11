@@ -4,7 +4,8 @@ import { Nunito_Sans } from 'next/font/google'
 
 const nunito_sans = Nunito_Sans({ 
   subsets: ['latin'],
-  weight: ['400', '700']
+  weight: ['400', '700'],
+  variable: '--font-nunito-sans',
 })
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${nunito_sans.className} bg-zinc-950 text-white`}>{children}</body>
+      <body className={`${nunito_sans.variable} font-sans bg-gray-100 text-gray-600`}>{children}</body>
     </html>
   )
 }
