@@ -9,6 +9,7 @@
     "lint": "next lint --fix"
   },
   "dependencies": {
+    "@radix-ui/react-avatar": "^1.0.3",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-toggle": "^1.0.3",
     "@types/node": "20.4.1",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@rocketseat/eslint-config": "^2.0.1",
     "eslint": "^8.44.0",
-    "prettier-plugin-tailwindcss": "^0.4.0"
+    "prettier-plugin-tailwindcss": "^0.4.0",
+    "tailwind-scrollbar": "^3.0.4"
   }
 }

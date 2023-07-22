@@ -70,7 +70,7 @@
  
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-400 scrollbar-thumb-rounded scrollbar-track-rounded;
   }
   body {
     @apply bg-background text-foreground;
