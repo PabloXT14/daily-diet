@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 import { ArrowUpRight } from '@/assets/icons/phosphor-react'
 
 export function PercentSection() {
@@ -7,12 +9,12 @@ export function PercentSection() {
       <span className="text-sm text-gray-600">
         das refeições dentro da dieta
       </span>
-      <button className="">
+      <Link href="/summary">
         <ArrowUpRight
           className="absolute right-2 top-2 text-green-dark"
           size={24}
         />
-      </button>
+      </Link>
     </section>
   )
 }
