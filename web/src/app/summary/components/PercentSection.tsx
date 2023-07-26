@@ -1,19 +1,52 @@
 import Link from 'next/link'
+import { ComponentProps } from 'react'
+import { VariantProps, tv } from 'tailwind-variants'
 
 import { ArrowLeft } from '@/assets/icons/phosphor-react'
 
-export function PercentSection() {
+const percentVariants = tv({
+  slots: {
+    base: 'flex w-full flex-col px-6 pt-9',
+    percentage: 'text-3xl font-bold text-gray-700',
+    description: 'text-sm text-gray-600',
+    icon: '',
+  },
+  variants: {
+    color: {
+      primary: {
+        base: 'bg-green-light',
+        icon: 'text-green-dark',
+      },
+      secondary: {
+        base: 'bg-red-light',
+        icon: 'text-red-dark',
+      },
+    },
+  },
+  defaultVariants: {
+    color: 'primary',
+  },
+})
+
+type PercentSectionProps = ComponentProps<'header'> &
+  VariantProps<typeof percentVariants>
+
+export function PercentSection({
+  color,
+  className,
+  ...props
+}: PercentSectionProps) {
+  const { base, percentage, description, icon } = percentVariants({ color })
+
   return (
-    <header className="flex w-full flex-col px-6">
+    <header className={base({ class: className })} {...props}>
       <Link href="/" className="self-start">
-        <ArrowLeft className="text-green-dark" size={24} />
+        <ArrowLeft className={icon()} size={24} />
       </Link>
 
       <div className="mb-9 flex flex-col items-center justify-center">
-        <strong className="text-3xl font-bold text-gray-700">90,86%</strong>
-        <span className="text-sm text-gray-600">
-          das refeições dentro da dieta
-        </span>
+        <strong className={percentage()}>90,86%</strong>
+        <span className={description()}>das refeições dentro da dieta</span>
       </div>
     </header>
   )
