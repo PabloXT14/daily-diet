@@ -1,8 +1,8 @@
-import { ButtonHTMLAttributes } from 'react'
+import { ComponentPropsWithoutRef } from 'react'
 import { Circle } from '@/assets/icons/phosphor-react'
 import { twMerge } from 'tailwind-merge'
 
-interface MealItemProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface MealItemProps extends ComponentPropsWithoutRef<'button'> {
   hour: string
   name: string
   isDiet: boolean
@@ -32,7 +32,7 @@ export function MealItem({
         <Circle
           size={18}
           weight="fill"
-          className={twMerge('', isDiet ? 'text-green-mid' : 'text-red-mid')}
+          className={twMerge(isDiet ? 'text-green-mid' : 'text-red-mid')}
         />
       </span>
     </button>

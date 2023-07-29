@@ -40,11 +40,11 @@ export function PercentSection({
 
   return (
     <section className={base({ class: className })} {...props}>
-      <strong className={percentage()}>90,86%</strong>
-      <span className={description()}>das refeições dentro da dieta</span>
       <Link href="/summary">
         <ArrowUpRight className={icon()} size={24} />
       </Link>
+      <strong className={percentage()}>90,86%</strong>
+      <span className={description()}>das refeições dentro da dieta</span>
     </section>
   )
 }

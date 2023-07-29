@@ -1,3 +1,10 @@
 'use client'
 
-export * from 'phosphor-react'
+export {
+  ArrowLeft,
+  ArrowUpRight,
+  Plus,
+  PencilSimpleLine,
+  Trash,
+  Circle,
+} from 'phosphor-react'

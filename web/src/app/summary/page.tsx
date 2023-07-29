@@ -3,9 +3,9 @@ import { ContentSection } from './components/ContentSection'
 
 export default function Summary() {
   return (
-    <main className="relative flex h-screen flex-col overflow-hidden bg-green-light">
-      <PercentSection color="secondary" />
-      <ContentSection />
+    <main className="flex h-screen flex-col overflow-hidden bg-gray-700">
+      <PercentSection className="pb-16" />
+      <ContentSection className="-mt-8" />
     </main>
   )
 }
