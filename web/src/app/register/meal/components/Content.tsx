@@ -48,8 +48,6 @@ export function Content() {
     await router.push(`/register/meal/feedback?is-diet=${isDiet}`)
   }
 
-  console.log(errors)
-
   return (
     <section className="flex-1 overflow-y-auto rounded-t-[20px] bg-gray-100 px-6 py-10">
       <form
