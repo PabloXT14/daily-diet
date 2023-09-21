@@ -1,11 +1,14 @@
 import { ComponentPropsWithoutRef } from 'react'
-import { Circle } from '@/assets/icons/phosphor-react'
+import Link, { LinkProps } from 'next/link'
 import { twMerge } from 'tailwind-merge'
 
-interface MealItemProps extends ComponentPropsWithoutRef<'button'> {
+import { Circle } from '@/assets/icons/phosphor-react'
+
+interface MealItemProps extends LinkProps {
   hour: string
   name: string
   isDiet: boolean
+  className?: string
 }
 
 export function MealItem({
@@ -16,7 +19,8 @@ export function MealItem({
   ...props
 }: MealItemProps) {
   return (
-    <button
+    <Link
+      prefetch={false}
       className={twMerge(
         'flex w-full items-center justify-start gap-3 rounded-md border border-gray-300 px-4 py-[14px]',
         className,
@@ -35,6 +39,6 @@ export function MealItem({
           className={twMerge(isDiet ? 'text-green-mid' : 'text-red-mid')}
         />
       </span>
-    </button>
+    </Link>
   )
 }
