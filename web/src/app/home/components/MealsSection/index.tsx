@@ -6,7 +6,7 @@ export function MealsSection() {
     <section className="flex flex-1 flex-col overflow-hidden">
       <NewMeal />
 
-      <div className="flex-1 space-y-8 overflow-y-auto pb-[25%]">
+      <div className="flex-1 space-y-8 overflow-y-auto pb-[25%] scrollbar-none">
         <DayList />
         <DayList />
       </div>
