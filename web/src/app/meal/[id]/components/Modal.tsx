@@ -1,3 +1,7 @@
+'use-client'
+
+import { useParams } from 'next/navigation'
+
 import { Button } from '@/components/Button'
 import {
   Dialog,
@@ -11,6 +15,10 @@ import { DialogClose } from '@radix-ui/react-dialog'
 import { Trash } from '@/assets/icons/phosphor-react'
 
 export const Modal = () => {
+  const params = useParams()
+
+  console.log(params?.id)
+
   return (
     <Dialog>
       <DialogTrigger asChild>

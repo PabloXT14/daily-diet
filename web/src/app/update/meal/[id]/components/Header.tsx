@@ -16,7 +16,7 @@ export function Header() {
         <ArrowLeft size={24} className="text-gray-600" />
       </button>
 
-      <h1 className="text-lg font-bold text-gray-700">Refeição</h1>
+      <h1 className="text-lg font-bold text-gray-700">Editar refeição</h1>
     </header>
   )
 }

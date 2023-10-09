@@ -40,7 +40,7 @@ export const Content = () => {
   })
   const router = useRouter()
 
-  async function handleRegisterMeal(data: RegisterMealFormDataOutput) {
+  async function handleUpdateMeal(data: RegisterMealFormDataOutput) {
     const { name, description, date, time, isDiet } = data
 
     // TODO: Update the meal in the database
@@ -53,7 +53,7 @@ export const Content = () => {
       <form
         className="space-y-6"
         id="register-meal"
-        onSubmit={handleSubmit(handleRegisterMeal)}
+        onSubmit={handleSubmit(handleUpdateMeal)}
       >
         <Input label="Nome" {...register('name')} defaultValue={'Sanduiche'} />
 
