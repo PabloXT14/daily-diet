@@ -48,11 +48,7 @@ export const Content = () => {
           <span className="text-xs text-red-500">{errors.email.message}</span>
         )}
 
-        <Input
-          type="password"
-          placeholder="Password"
-          {...register('password')}
-        />
+        <Input type="password" placeholder="Senha" {...register('password')} />
         {errors.password && (
           <span className="text-xs text-red-500">
             {errors.password.message}
