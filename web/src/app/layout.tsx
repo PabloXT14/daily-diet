@@ -2,6 +2,7 @@ import { ReactNode } from 'react'
 import type { Metadata } from 'next'
 import { Nunito_Sans } from 'next/font/google'
 
+import Providers from './providers'
 import './globals.css'
 
 const nunito_sans = Nunito_Sans({
@@ -21,7 +22,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${nunito_sans.variable} bg-gray-100 font-sans text-gray-600 `}
       >
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   )
