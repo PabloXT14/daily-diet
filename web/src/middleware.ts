@@ -12,6 +12,10 @@ export default function middleware(request: NextRequest) {
       return NextResponse.next()
     }
 
+    if (request.nextUrl.pathname === '/register/user') {
+      return NextResponse.next()
+    }
+
     return NextResponse.redirect(loginURL)
   }
 
@@ -27,7 +31,7 @@ export const config = {
     '/',
     '/home',
     '/login',
-    '/register/meal/:path*',
+    '/register/:path*',
     '/meal/:path*',
     '/summary/:path*',
     '/update/:path*',
