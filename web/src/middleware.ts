@@ -27,7 +27,7 @@ export const config = {
     '/',
     '/home',
     '/login',
-    '/register/:path*',
+    '/register/meal/:path*',
     '/meal/:path*',
     '/summary/:path*',
     '/update/:path*',
