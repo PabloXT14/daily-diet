@@ -1,11 +1,12 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import { randomUUID } from 'node:crypto'
 import bcrypt from 'bcrypt'
+import { sign } from 'jsonwebtoken'
 
 import { knex } from '../database'
 import { AppError } from '../utils/AppError'
-import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
+import { ensureAuthenticated } from '../middlewares/ensure-authenticated'
+import { jwtConfig } from '../configs/auth'
 
 export async function sessionsRoutes(app: FastifyInstance) {
   app.post('/login', async (request, reply) => {
@@ -29,17 +30,14 @@ export async function sessionsRoutes(app: FastifyInstance) {
       throw new AppError('Incorrect email or password', 401)
     }
 
-    const sessionId = randomUUID()
+    const { secret, expiresIn } = jwtConfig
 
-    await knex('user')
-      .update({
-        session_id: sessionId,
-      })
-      .where({
-        id: user.id,
-      })
+    const token = sign({}, secret, {
+      subject: user.id,
+      expiresIn,
+    })
 
-    reply.setCookie('sessionId', sessionId, {
+    reply.setCookie('token', token, {
       path: '/',
       httpOnly: true,
       secure: true,
@@ -47,15 +45,17 @@ export async function sessionsRoutes(app: FastifyInstance) {
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1), // 1 day
     })
 
-    return reply.status(201).send({ session_id: sessionId })
+    const { password: _, ...userWithoutPassword } = user
+
+    return reply.status(201).send({ user: userWithoutPassword })
   })
 
   app.post(
     '/logout',
-    { preHandler: [checkSessionIdExists] },
+    { preHandler: [ensureAuthenticated] },
     async (request, reply) => {
       return reply
-        .clearCookie('sessionId', {
+        .clearCookie('token', {
           path: '/',
           httpOnly: true,
           secure: true,

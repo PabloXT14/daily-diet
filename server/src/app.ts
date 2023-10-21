@@ -18,12 +18,12 @@ const rateLimitOptions: RateLimitOptions = {
   timeWindow: '1 minute',
 }
 
-app.register(cors, {
-  origin: env.ENABLE_CORS?.split(';') ?? ['*'],
-})
-
-app.register(rateLimit, rateLimitOptions)
 app.register(cookie)
+app.register(cors, {
+  origin: env.ENABLED_CORS,
+  credentials: true,
+})
+app.register(rateLimit, rateLimitOptions)
 app.register(formbody)
 
 app.register(sessionsRoutes, { prefix: '/sessions' })

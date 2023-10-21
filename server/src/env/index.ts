@@ -12,7 +12,13 @@ const envSchema = z.object({
   DATABASE_CLIENT: z.enum(['sqlite', 'pg']).default('sqlite'),
   DATABASE_URL: z.string(),
   PORT: z.coerce.number().default(3333),
-  ENABLE_CORS: z.string().optional(),
+  ENABLED_CORS: z.string().transform((value) => {
+    if (!value) {
+      return ['http://localhost:3000', 'http://127.0.0.1:3000']
+    }
+    return value?.split(';')
+  }),
+  JWT_SECRET: z.string(),
 })
 
 const _env = envSchema.safeParse(process.env)

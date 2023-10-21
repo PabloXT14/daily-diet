@@ -3,18 +3,18 @@ import { randomUUID } from 'node:crypto'
 import bcrypt from 'bcrypt'
 
 import { knex } from '../database'
-import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
+import { ensureAuthenticated } from '../middlewares/ensure-authenticated'
 import { AppError } from '../utils/AppError'
 import { UserSchema } from '../schemas/user-schema'
 
 export async function usersRoutes(app: FastifyInstance) {
   app.get(
     '/',
-    { preHandler: [checkSessionIdExists] },
+    { preHandler: [ensureAuthenticated] },
     async (request, reply) => {
-      const { sessionId } = request.cookies
+      const { id: user_id } = request.user
 
-      const user = await knex('user').first().where({ session_id: sessionId })
+      const user = await knex('user').first().where({ id: user_id })
 
       return reply.status(200).send({ user })
     },
@@ -36,16 +36,6 @@ export async function usersRoutes(app: FastifyInstance) {
       throw new AppError('User email already exists', 400)
     }
 
-    const sessionId = randomUUID()
-
-    reply.setCookie('sessionId', sessionId, {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1), // 1 day
-    })
-
     const saltRounds = 10
     const hashedPassword = await bcrypt.hash(password, saltRounds)
 
@@ -55,7 +45,6 @@ export async function usersRoutes(app: FastifyInstance) {
       email,
       password: hashedPassword,
       avatar_url,
-      session_id: sessionId,
     })
 
     return reply.status(201).send()
@@ -63,9 +52,9 @@ export async function usersRoutes(app: FastifyInstance) {
 
   app.put(
     '/',
-    { preHandler: [checkSessionIdExists] },
+    { preHandler: [ensureAuthenticated] },
     async (request, reply) => {
-      const { sessionId } = request.cookies
+      const { id: user_id } = request.user
 
       const bodySchema = UserSchema.pick({
         name: true,
@@ -88,13 +77,13 @@ export async function usersRoutes(app: FastifyInstance) {
         request.body,
       )
 
-      const saltRounds = 10
       let hashedPassword = ''
       if (password) {
+        const saltRounds = 10
         hashedPassword = await bcrypt.hash(password, saltRounds)
       }
 
-      const user = await knex('user').first().where({ session_id: sessionId })
+      const user = await knex('user').first().where({ id: user_id })
 
       await knex('user')
         .update({
@@ -104,7 +93,7 @@ export async function usersRoutes(app: FastifyInstance) {
           avatar_url,
           updated_at: knex.fn.now(),
         })
-        .where({ session_id: sessionId })
+        .where({ id: user_id })
 
       return reply.status(204).send()
     },
@@ -112,13 +101,13 @@ export async function usersRoutes(app: FastifyInstance) {
 
   app.delete(
     '/',
-    { preHandler: [checkSessionIdExists] },
+    { preHandler: [ensureAuthenticated] },
     async (request, reply) => {
-      const { sessionId } = request.cookies
+      const { id: user_id } = request.user
 
-      await knex('user').delete().where({ session_id: sessionId })
+      await knex('user').delete().where({ id: user_id })
 
-      reply.clearCookie('sessionId')
+      reply.clearCookie('token')
 
       return reply.status(204).send()
     },
