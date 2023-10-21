@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt'
 
 import { knex } from '../database'
 import { ensureAuthenticated } from '../middlewares/ensure-authenticated'
-import { AppError } from '../utils/AppError'
+import { AppError } from '../utils/app-error'
 import { UserSchema } from '../schemas/user-schema'
 
 export async function usersRoutes(app: FastifyInstance) {
@@ -14,7 +14,7 @@ export async function usersRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const { id: user_id } = request.user
 
-      const user = await knex('user').first().where({ id: user_id })
+      const user = await knex('users').first().where({ id: user_id })
 
       return reply.status(200).send({ user })
     },
@@ -30,7 +30,7 @@ export async function usersRoutes(app: FastifyInstance) {
 
     const { name, email, password, avatar_url } = bodySchema.parse(request.body)
 
-    const userAlreadyExists = await knex('user').first().where({ email })
+    const userAlreadyExists = await knex('users').first().where({ email })
 
     if (userAlreadyExists) {
       throw new AppError('User email already exists', 400)
@@ -39,7 +39,7 @@ export async function usersRoutes(app: FastifyInstance) {
     const saltRounds = 10
     const hashedPassword = await bcrypt.hash(password, saltRounds)
 
-    await knex('user').insert({
+    await knex('users').insert({
       id: randomUUID(),
       name,
       email,
@@ -78,14 +78,14 @@ export async function usersRoutes(app: FastifyInstance) {
       )
 
       let hashedPassword = ''
+      let user = null
       if (password) {
         const saltRounds = 10
         hashedPassword = await bcrypt.hash(password, saltRounds)
+        user = await knex('users').first().where({ id: user_id })
       }
 
-      const user = await knex('user').first().where({ id: user_id })
-
-      await knex('user')
+      await knex('users')
         .update({
           name,
           email,
@@ -105,7 +105,7 @@ export async function usersRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const { id: user_id } = request.user
 
-      await knex('user').delete().where({ id: user_id })
+      await knex('users').delete().where({ id: user_id })
 
       reply.clearCookie('token')
 

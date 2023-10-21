@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt'
 import { sign } from 'jsonwebtoken'
 
 import { knex } from '../database'
-import { AppError } from '../utils/AppError'
+import { AppError } from '../utils/app-error'
 import { ensureAuthenticated } from '../middlewares/ensure-authenticated'
 import { jwtConfig } from '../configs/auth'
 
@@ -17,7 +17,7 @@ export async function sessionsRoutes(app: FastifyInstance) {
 
     const { email, password } = bodySchema.parse(request.body)
 
-    const user = await knex('user').first().where({ email })
+    const user = await knex('users').first().where({ email })
 
     if (!user) {
       throw new AppError('Incorrect email or password', 401)
@@ -42,7 +42,7 @@ export async function sessionsRoutes(app: FastifyInstance) {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1), // 1 day
+      maxAge: 1000 * 60 * 60 * 24 * 1, // 1 day
     })
 
     const { password: _, ...userWithoutPassword } = user
@@ -54,15 +54,7 @@ export async function sessionsRoutes(app: FastifyInstance) {
     '/logout',
     { preHandler: [ensureAuthenticated] },
     async (request, reply) => {
-      return reply
-        .clearCookie('token', {
-          path: '/',
-          httpOnly: true,
-          secure: true,
-          sameSite: 'strict',
-        })
-        .status(204)
-        .send()
+      return reply.clearCookie('token').status(204).send()
     },
   )
 }

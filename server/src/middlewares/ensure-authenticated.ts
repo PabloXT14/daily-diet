@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { verify } from 'jsonwebtoken'
 
-import { AppError } from '../utils/AppError'
+import { AppError } from '../utils/app-error'
 import { jwtConfig } from '../configs/auth'
 
 export async function ensureAuthenticated(

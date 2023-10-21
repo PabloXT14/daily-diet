@@ -8,7 +8,7 @@ import { ZodError } from 'zod'
 import { env } from './env'
 import { usersRoutes } from './routes/users'
 import { sessionsRoutes } from './routes/sessions'
-import { AppError } from './utils/AppError'
+import { AppError } from './utils/app-error'
 import { mealsRoutes } from './routes/meals'
 
 const app = fastify()

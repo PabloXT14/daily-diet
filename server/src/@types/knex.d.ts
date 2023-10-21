@@ -5,7 +5,7 @@ import { UserType } from '../schemas/user-schema'
 
 declare module 'knex/types/tables' {
   export interface Tables {
-    user: UserType
-    meal: MealType
+    users: UserType
+    meals: MealType
   }
 }
