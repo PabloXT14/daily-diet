@@ -8,7 +8,6 @@ export const UserSchema = z.object({
   avatar_url: z.string().url().optional(),
   created_at: z.string(),
   updated_at: z.string(),
-  session_id: z.string().uuid(),
 })
 
 export type UserType = z.infer<typeof UserSchema>
