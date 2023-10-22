@@ -9,7 +9,7 @@ import { ensureAuthenticated } from '../middlewares/ensure-authenticated'
 import { jwtConfig } from '../configs/auth'
 
 export async function sessionsRoutes(app: FastifyInstance) {
-  app.post('/login', async (request, reply) => {
+  app.post('/signin', async (request, reply) => {
     const bodySchema = z.object({
       email: z.string().email(),
       password: z.string().min(6),
@@ -51,7 +51,7 @@ export async function sessionsRoutes(app: FastifyInstance) {
   })
 
   app.post(
-    '/logout',
+    '/signout',
     { preHandler: [ensureAuthenticated] },
     async (request, reply) => {
       return reply.clearCookie('token').status(204).send()
