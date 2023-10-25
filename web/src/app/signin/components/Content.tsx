@@ -1,13 +1,17 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import dailyDietLogo from '@/assets/daily-diet-logo.svg'
 import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
+import { SpinnerGap } from '@/assets/icons/phosphor-react'
+import { api } from '@/lib/api'
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: 'Email inválido' }),
@@ -27,8 +31,27 @@ export const Content = () => {
     resolver: zodResolver(loginFormSchema),
   })
 
+  const queryClient = useQueryClient()
+  const router = useRouter()
+
+  const { mutateAsync: loginUser, isLoading } = useMutation({
+    mutationFn: async (data: LoginFormData) => {
+      await api.post('/sessions/signin', data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['user'])
+
+      router.push('/')
+    },
+    onError: (error) => {
+      console.log(error)
+
+      alert('Ocorreu um erro ao logar')
+    },
+  })
+
   async function handleLogin(data: LoginFormData) {
-    console.log(data)
+    await loginUser(data)
   }
 
   return (
@@ -55,7 +78,16 @@ export const Content = () => {
           </span>
         )}
 
-        <Button type="submit">Entrar</Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <SpinnerGap size={20} className="animate-spin" />
+              Carregando...
+            </>
+          ) : (
+            'Entrar'
+          )}
+        </Button>
       </form>
 
       <div>
