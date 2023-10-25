@@ -7,4 +7,5 @@ export {
   PencilSimpleLine,
   Trash,
   Circle,
+  SpinnerGap,
 } from 'phosphor-react'

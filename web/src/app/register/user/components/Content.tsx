@@ -1,12 +1,16 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import dailyDietLogo from '@/assets/daily-diet-logo.svg'
 import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
+import { api } from '@/lib/api'
+import { SpinnerGap } from '@/assets/icons/phosphor-react'
 
 const registerUserFormSchema = z.object({
   name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
@@ -28,8 +32,26 @@ export const Content = () => {
     resolver: zodResolver(registerUserFormSchema),
   })
 
+  const queryClient = useQueryClient()
+  const router = useRouter()
+
+  const { mutateAsync: registerUser, isLoading } = useMutation({
+    mutationFn: async (data: RegisterUserFormData) => {
+      const response = await api.post('/users', data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['user'])
+      router.push('/signin')
+    },
+    onError: (error) => {
+      console.log(error)
+
+      alert('Ocorreu um erro ao cadastrar o usuário. Tente novamente.')
+    },
+  })
+
   async function handleRegisterUser(data: RegisterUserFormData) {
-    console.log(data)
+    await registerUser(data)
   }
 
   return (
@@ -76,7 +98,16 @@ export const Content = () => {
           </span>
         )}
 
-        <Button type="submit">Cadastrar</Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <SpinnerGap size={20} className="animate-spin" />
+              Carregando...
+            </>
+          ) : (
+            'Cadastrar'
+          )}
+        </Button>
       </form>
     </div>
   )
