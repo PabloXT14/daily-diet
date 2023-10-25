@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export default function middleware(request: NextRequest) {
-  const token = request.cookies.get('sessionId')?.value
+  const token = request.cookies.get('token')?.value
 
-  const loginURL = new URL('/login', request.url)
+  const signinURL = new URL('/signin', request.url)
   const homeURL = new URL('/', request.url)
 
   // User not authenticated
   if (!token) {
-    if (request.nextUrl.pathname === '/login') {
+    if (request.nextUrl.pathname === '/signin') {
       return NextResponse.next()
     }
 
@@ -16,11 +16,11 @@ export default function middleware(request: NextRequest) {
       return NextResponse.next()
     }
 
-    return NextResponse.redirect(loginURL)
+    return NextResponse.redirect(signinURL)
   }
 
   // User authenticated
-  if (request.nextUrl.pathname === '/login') {
+  if (request.nextUrl.pathname === '/signin') {
     return NextResponse.redirect(homeURL)
   }
 }
@@ -30,7 +30,7 @@ export const config = {
   matcher: [
     '/',
     '/home',
-    '/login',
+    '/signin',
     '/register/:path*',
     '/meal/:path*',
     '/summary/:path*',
