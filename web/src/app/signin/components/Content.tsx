@@ -36,7 +36,15 @@ export const Content = () => {
 
   const { mutateAsync: loginUser, isLoading } = useMutation({
     mutationFn: async (data: LoginFormData) => {
-      await api.post('/sessions/signin', data)
+      await api.post(
+        '/sessions/signin',
+        {
+          ...data,
+        },
+        {
+          withCredentials: true,
+        },
+      )
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['user'])
