@@ -1,8 +1,13 @@
+'use client'
+
 import Link from 'next/link'
 import { ComponentProps } from 'react'
 import { tv, VariantProps } from 'tailwind-variants'
+import { useQuery } from '@tanstack/react-query'
 
 import { ArrowUpRight } from '@/assets/icons/phosphor-react'
+import { api } from '@/lib/api'
+import { MealsSummary } from '@/@types/meal'
 
 const percentVariants = tv({
   slots: {
@@ -23,6 +28,7 @@ const percentVariants = tv({
       },
     },
   },
+
   defaultVariants: {
     color: 'primary',
   },
@@ -36,14 +42,33 @@ export function PercentSection({
   className,
   ...props
 }: PercentSectionProps) {
-  const { base, percentage, description, icon } = percentVariants({ color })
+  const { data: mealsSummary } = useQuery<MealsSummary>({
+    queryKey: ['meals-summary'],
+    queryFn: async () => {
+      const response = await api.get('/meals/summary', {
+        withCredentials: true,
+      })
+
+      const mealsSummary = response.data.summary as MealsSummary
+
+      return mealsSummary
+    },
+  })
+
+  const percentageNumber = mealsSummary?.total_meals
+    ? Math.round((mealsSummary?.meals_in_diet / mealsSummary.total_meals) * 100)
+    : 0
+
+  const { base, percentage, description, icon } = percentVariants({
+    color: percentageNumber > 50 ? 'primary' : 'secondary',
+  })
 
   return (
     <section className={base({ class: className })} {...props}>
       <Link href="/summary">
         <ArrowUpRight className={icon()} size={24} />
       </Link>
-      <strong className={percentage()}>90,86%</strong>
+      <strong className={percentage()}>{percentageNumber}%</strong>
       <span className={description()}>das refeições dentro da dieta</span>
     </section>
   )
