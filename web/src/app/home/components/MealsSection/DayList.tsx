@@ -1,24 +1,16 @@
+import { MealsByDate } from '@/@types/meal'
 import { MealItem } from './MealItem'
 
-export function DayList() {
+type DayListProps = MealsByDate
+
+export function DayList({ date, meals }: DayListProps) {
   return (
     <article className="space-y-2">
-      <strong className="text-lg font-bold text-gray-700">12.08.22</strong>
+      <strong className="text-lg font-bold text-gray-700">{date}</strong>
       <div className="space-y-2">
-        <MealItem
-          href={`/meal/${'001'}`}
-          hour="20:00"
-          name="X-tudo"
-          isDiet={false}
-        />
-        <MealItem href={`/meal/${'002'}`} hour="20:00" name="X-tudo" isDiet />
-        <MealItem
-          href={`/meal/${'003'}`}
-          hour="20:00"
-          name="Salada de frango com batata"
-          isDiet
-        />
-        <MealItem href={`/meal/${'004'}`} hour="20:00" name="X-tudo" isDiet />
+        {meals.map((meal) => (
+          <MealItem key={meal.id} href={`/meal/${meal.id}`} meal={meal} />
+        ))}
       </div>
     </article>
   )

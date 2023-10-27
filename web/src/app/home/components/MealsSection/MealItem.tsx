@@ -1,23 +1,16 @@
-import { ComponentPropsWithoutRef } from 'react'
 import Link, { LinkProps } from 'next/link'
 import { twMerge } from 'tailwind-merge'
+import { format } from 'date-fns'
 
 import { Circle } from '@/assets/icons/phosphor-react'
+import { Meal } from '@/@types/meal'
 
-interface MealItemProps extends LinkProps {
-  hour: string
-  name: string
-  isDiet: boolean
+type MealItemProps = LinkProps & {
+  meal: Meal
   className?: string
 }
 
-export function MealItem({
-  hour,
-  name,
-  isDiet,
-  className,
-  ...props
-}: MealItemProps) {
+export function MealItem({ meal, className, ...props }: MealItemProps) {
   return (
     <Link
       prefetch={false}
@@ -27,16 +20,18 @@ export function MealItem({
       )}
       {...props}
     >
-      <span className="text-xs font-bold text-gray-700">{hour}</span>
+      <span className="text-xs font-bold text-gray-700">
+        {format(new Date(meal.meal_datetime), 'HH:mm')}
+      </span>
       <div className="h-[14px] border-r border-r-gray-400" />
       <p className="flex-1 truncate text-left text-base text-gray-600">
-        {name}
+        {meal.name}
       </p>
       <span>
         <Circle
           size={18}
           weight="fill"
-          className={twMerge(isDiet ? 'text-green-mid' : 'text-red-mid')}
+          className={twMerge(meal.is_diet ? 'text-green-mid' : 'text-red-mid')}
         />
       </span>
     </Link>

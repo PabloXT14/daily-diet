@@ -15,3 +15,8 @@ export type MealsSummary = {
   meals_out_of_diet: number
   best_diet_sequence: number
 }
+
+export type MealsByDate = {
+  date: string
+  meals: Meal[]
+}
