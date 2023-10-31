@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowUpRight } from '@/assets/icons/phosphor-react'
 import { api } from '@/lib/api'
 import { MealsSummary } from '@/@types/meal'
+import { calculatePercentage } from '@/utils/calculate-percentage'
 
 const percentVariants = tv({
   slots: {
@@ -55,12 +56,19 @@ export function PercentSection({
     },
   })
 
-  const percentageNumber = mealsSummary?.total_meals
-    ? Math.round((mealsSummary?.meals_in_diet / mealsSummary.total_meals) * 100)
-    : 0
+  const percentageMealsInDiet = calculatePercentage({
+    value: mealsSummary?.meals_in_diet || 0,
+    total: mealsSummary?.total_meals || 0,
+  })
+
+  const percentageMealsInDietFormatted = percentageMealsInDiet
+    .toString()
+    .replace('.', ',')
+
+  const isPercentageMealsInDietGood = percentageMealsInDiet > 50
 
   const { base, percentage, description, icon } = percentVariants({
-    color: percentageNumber > 50 ? 'primary' : 'secondary',
+    color: isPercentageMealsInDietGood ? 'primary' : 'secondary',
   })
 
   return (
@@ -68,7 +76,9 @@ export function PercentSection({
       <Link href="/summary">
         <ArrowUpRight className={icon()} size={24} />
       </Link>
-      <strong className={percentage()}>{percentageNumber}%</strong>
+      <strong className={percentage()}>
+        {percentageMealsInDietFormatted}%
+      </strong>
       <span className={description()}>das refeições dentro da dieta</span>
     </section>
   )
