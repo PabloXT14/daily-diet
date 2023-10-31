@@ -1,11 +1,31 @@
+'use client'
+
 import { ComponentProps } from 'react'
 import { twMerge } from 'tailwind-merge'
+import { useQuery } from '@tanstack/react-query'
 
 import { MealMetric } from './MealMetric'
+import { api } from '@/lib/api'
+import { MealsSummary } from '@/@types/meal'
 
 type ContentSectionProps = ComponentProps<'section'>
 
 export function ContentSection({ className, ...props }: ContentSectionProps) {
+  const { data: mealsSummary } = useQuery({
+    queryKey: ['meals-summary'],
+    queryFn: async () => {
+      const response = await api.get('/meals/summary', {
+        withCredentials: true,
+      })
+
+      return response.data.summary as MealsSummary
+    },
+  })
+
+  if (!mealsSummary) {
+    return null
+  }
+
   return (
     <section
       className={twMerge(
@@ -21,13 +41,13 @@ export function ContentSection({ className, ...props }: ContentSectionProps) {
       <div className="flex flex-col gap-3">
         {/* Sequence */}
         <MealMetric
-          metricPercentage={22}
+          metricPercentage={mealsSummary.best_diet_sequence}
           metricDescription="melhor sequência de pratos dentro da dieta"
         />
 
         {/* Total */}
         <MealMetric
-          metricPercentage={109}
+          metricPercentage={mealsSummary.total_meals}
           metricDescription="refeições registradas"
         />
 
@@ -35,7 +55,7 @@ export function ContentSection({ className, ...props }: ContentSectionProps) {
         <div className="flex flex-wrap gap-3">
           {/* Success */}
           <MealMetric
-            metricPercentage={99}
+            metricPercentage={mealsSummary.meals_in_diet}
             metricDescription="refeições dentro da dieta"
             className="min-w-[130px] flex-1"
             color="green"
@@ -43,7 +63,7 @@ export function ContentSection({ className, ...props }: ContentSectionProps) {
 
           {/* Fail */}
           <MealMetric
-            metricPercentage={10}
+            metricPercentage={mealsSummary.meals_out_of_diet}
             metricDescription="refeições fora da dieta"
             className="min-w-[130px] flex-1"
             color="red"
