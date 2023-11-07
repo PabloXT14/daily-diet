@@ -5,7 +5,6 @@ import { ensureAuthenticated } from '../middlewares/ensure-authenticated'
 import { knex } from '../database'
 import { MealSchema } from '../schemas/meal-schema'
 import { AppError } from '../utils/app-error'
-import { formatDatetimeToUTC } from '../utils/format'
 
 export async function mealsRoutes(app: FastifyInstance) {
   app.addHook('preHandler', ensureAuthenticated)
@@ -55,7 +54,7 @@ export async function mealsRoutes(app: FastifyInstance) {
       id: randomUUID(),
       name,
       description,
-      meal_datetime: formatDatetimeToUTC(meal_datetime),
+      meal_datetime: new Date(meal_datetime).toISOString(),
       is_diet,
       user_id,
     })
@@ -101,8 +100,8 @@ export async function mealsRoutes(app: FastifyInstance) {
         name,
         description,
         meal_datetime: meal_datetime
-          ? formatDatetimeToUTC(meal_datetime)
-          : meal_datetime,
+          ? new Date(meal_datetime).toISOString()
+          : mealExists.meal_datetime,
         is_diet,
         updated_at: knex.fn.now(),
       })
