@@ -1,9 +1,15 @@
 import { ReactNode } from 'react'
 import type { Metadata } from 'next'
 import { Nunito_Sans } from 'next/font/google'
+import { setDefaultOptions } from 'date-fns'
+import ptBR from 'date-fns/locale/pt-BR'
 
 import Providers from './providers'
 import './globals.css'
+
+setDefaultOptions({
+  locale: ptBR,
+})
 
 const nunito_sans = Nunito_Sans({
   subsets: ['latin'],
