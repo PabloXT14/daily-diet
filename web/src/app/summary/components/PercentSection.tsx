@@ -42,7 +42,7 @@ export function PercentSection({
   className,
   ...props
 }: PercentSectionProps) {
-  const { data: mealsSummary } = useQuery({
+  const { data: mealsSummary, error } = useQuery({
     queryKey: ['meals-summary'],
     queryFn: async () => {
       const response = await api.get('/meals/summary', {
@@ -53,9 +53,13 @@ export function PercentSection({
     },
   })
 
+  if (error || !mealsSummary) {
+    return null
+  }
+
   const percentageMealsInDiet = calculatePercentage({
-    value: mealsSummary?.meals_in_diet || 0,
-    total: mealsSummary?.total_meals || 0,
+    value: mealsSummary.meals_in_diet,
+    total: mealsSummary.total_meals,
   })
 
   const percentageMealsInDietFormatted = percentageMealsInDiet
