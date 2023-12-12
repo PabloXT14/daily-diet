@@ -4,6 +4,7 @@ import { format } from 'date-fns'
 
 import { Circle } from '@/assets/icons/phosphor-react'
 import { Meal } from '@/@types/meal'
+import { getHoursAndMinutes } from '@/utils/time-utils'
 
 type MealItemProps = LinkProps & {
   meal: Meal
@@ -21,7 +22,7 @@ export function MealItem({ meal, className, ...props }: MealItemProps) {
       {...props}
     >
       <span className="text-xs font-bold text-gray-700">
-        {format(new Date(meal.meal_datetime), 'HH:mm')}
+        {meal.meal_datetime && getHoursAndMinutes(String(meal.meal_datetime))}
       </span>
       <div className="h-[14px] border-r border-r-gray-400" />
       <p className="flex-1 truncate text-left text-base text-gray-600">
