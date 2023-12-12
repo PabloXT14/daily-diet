@@ -4,19 +4,23 @@ import { useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { format, parseISO } from 'date-fns'
 
 import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { TextArea } from '@/components/TextArea'
 import { RadioGroup } from '@/components/RadioGroup'
+import { api } from '@/lib/api'
+import { SpinnerGap } from '@/assets/icons/phosphor-react'
 
 const registerMealFormSchema = z.object({
   name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
   description: z
     .string()
     .min(3, { message: 'Descrição deve ter pelo menos 3 caracteres' }),
-  date: z.string().nonempty({ message: 'Data é obrigatória' }),
-  time: z.string().nonempty({ message: 'Hora é obrigatória' }),
+  date: z.string().min(1, { message: 'Data é obrigatória' }),
+  time: z.string().min(1, { message: 'Hora é obrigatória' }),
   isDiet: z
     .enum(['true', 'false'], {
       required_error: 'Escolha uma opção',
@@ -38,14 +42,44 @@ export function Content() {
   } = useForm<RegisterMealFormDataInput, any, RegisterMealFormDataOutput>({
     resolver: zodResolver(registerMealFormSchema),
   })
+
+  const queryClient = useQueryClient()
   const router = useRouter()
 
+  const { mutateAsync: createMeal, isLoading } = useMutation({
+    mutationFn: async (data: RegisterMealFormDataOutput) => {
+      const [hours, minutes] = data && data.time.split(':')
+
+      const mealDatetime = format(
+        parseISO(data.date).setHours(Number(hours), Number(minutes)),
+        "yyyy-MM-dd'T'HH:mm:ss",
+      )
+
+      await api.post(
+        '/meals',
+        {
+          name: data.name,
+          description: data.description,
+          meal_datetime: mealDatetime,
+          is_diet: data.isDiet,
+        },
+        { withCredentials: true },
+      )
+
+      return data
+    },
+    onSuccess: async (data: RegisterMealFormDataOutput) => {
+      queryClient.invalidateQueries({ queryKey: ['meals'] })
+
+      router.push(`/register/meal/feedback?is-diet=${data.isDiet}`)
+    },
+    onError: () => {
+      alert('Ocorreu um erro ao cadastrar a refeição. Tente novamente.')
+    },
+  })
+
   async function handleRegisterMeal(data: RegisterMealFormDataOutput) {
-    const { name, description, date, time, isDiet } = data
-
-    // TODO: Create a new meal in the database
-
-    await router.push(`/register/meal/feedback?is-diet=${isDiet}`)
+    createMeal(data)
   }
 
   return (
@@ -137,8 +171,20 @@ export function Content() {
         </div>
       </form>
 
-      <Button type="submit" className="mt-10 w-full" form="register-meal">
-        Cadastrar refeição
+      <Button
+        type="submit"
+        className="mt-10 w-full"
+        form="register-meal"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <SpinnerGap size={20} className="animate-spin" />
+            Carregando...
+          </>
+        ) : (
+          'Cadastrar refeição'
+        )}
       </Button>
     </section>
   )
